@@ -7,3 +7,4 @@ http://materials.jeremybejarano.com/MPIwithPython/
 http://www.linux-mag.com/id/5759/  
 https://www.nesi.org.nz/sites/default/files/mpi-in-python.pdf  
 https://pythonprogramming.net/download-and-install-mpi-for-supercomputer/?completed=/installing-supercomputer-operating-system/  
+https://www.youtube.com/watch?v=hlCr8AuEuSc  
