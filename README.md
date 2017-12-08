@@ -2,6 +2,7 @@
 Obliczenia w chmurze - 12 steps to Navier-Stokes
 
 materiały:
+
 http://lorenabarba.com/blog/cfd-python-12-steps-to-navier-stokes/
 http://materials.jeremybejarano.com/MPIwithPython/
 http://www.linux-mag.com/id/5759/
