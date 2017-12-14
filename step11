@@ -10,6 +10,14 @@ from matplotlib import pyplot, cm
 from mpl_toolkits.mplot3d import Axes3D
 #%matplotlib inline
 
+import math
+from mpi4py import MPI
+from mpi4py.MPI import ANY_SOURCE
+
+comm = MPI.COMM_WORLD
+rank = comm.Get.rank()
+size = comm.Get_size()
+
 nx = 41
 ny = 41
 nt = 500
@@ -60,13 +68,24 @@ def pressure_poisson(p, dx, dy, b):
         p[-1, :] = 0        ##p = 0 at y = 2
         
     return p
+    
+local_n = math.floor(n/size)
+y = n % size
+if(rank <= y):
+    local_a = rank * (local_n + dt) * dt
+    local_b = local_a + (local_n + dt) * dt
+else:
+    local_a = y * (local_n + dt) * dt + (rank - y) * local_n * dt
+    local_b = local_a + local_n * dt
 
-def cavity_flow(nt, u, v, dt, dx, dy, p, rho, nu):
+# def cavity_flow(nt, u, v, dt, dx, dy, p, rho, nu):
+def cavity_flow(u, v, dt, dx, dy, p, rho, nu, a ,b, c):
     un = numpy.empty_like(u)
     vn = numpy.empty_like(v)
     b = numpy.zeros((ny, nx))
     
-    for n in range(nt):
+    # for n in range(nt):
+    for n in numpy.linespace(a, b, c + 1):
         un = u.copy()
         vn = v.copy()
         
@@ -113,8 +132,20 @@ v = numpy.zeros((ny, nx))
 p = numpy.zeros((ny, nx))
 b = numpy.zeros((ny, nx))
 nt = 100
-u, v, p = cavity_flow(nt, u, v, dt, dx, dy, p, rho, nu)
+#u, v, p = cavity_flow(nt, u, v, dt, dx, dy, p, rho, nu)
+u, v, p = cavity_flow(u, v, dt, dx, dy, p, rho, nu, local_a, local_b, local_n)
+wynik = numpy.zeros(3)
+total = numpy.zeros(3)
+wynik[0] = u
+wynik[1] = v
+wynik[2] = p
+comm.Rduce(wynik[0], total[0], op = MPI.SUM, root = 0)
+comm.Rduce(wynik[1], total[1], op = MPI.SUM, root = 0)
+comm.Rduce(wynik[2], total[2], op = MPI.SUM, root = 0)
+if comm.rank == 0:
+    print(u, v, p)
 
+'''
 fig = pyplot.figure(figsize=(11,7), dpi=100)
 # plotting the pressure field as a contour
 pyplot.contourf(X, Y, p, alpha=0.5, cmap=cm.viridis)  
@@ -125,3 +156,4 @@ pyplot.contour(X, Y, p, cmap=cm.viridis)
 pyplot.quiver(X[::2, ::2], Y[::2, ::2], u[::2, ::2], v[::2, ::2]) 
 pyplot.xlabel('X')
 pyplot.ylabel('Y');
+'''
